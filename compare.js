@@ -1,8 +1,6 @@
 require('es6-promise').polyfill();
-var checkMQ = require("./checkMQ");
 global.jQuery = require("jquery");
 var $ = require("jquery");
-import handlebars from 'handlebars';
 
 var Compare = function(el,active,mainPakets,url){
 	this.el = el;
@@ -13,6 +11,7 @@ var Compare = function(el,active,mainPakets,url){
 	this.url = url;
 	this.data = {};
 	this.init();
+	this.wrap_data_kanals = document.querySelector(".wrap_data_kanals")
 }
 
 
@@ -23,14 +22,14 @@ Compare.prototype.init = function(){
 		buttonCompare: [].slice.call($(this.mainPakets).find(".compare_active"))
 	}
 
-	this.compare.forEach(function(el,i){
+	for(var i = 0; i < this.compare.length; i++){
 		var compare = {
-			menuEl: el,
-			items: [].slice.call($(el).find(".item")),
+			menuEl: this.compare[i],
+			items: [].slice.call($(this.compare[i]).find(".item")),
 
 		}
 		self.compareArr.push(compare)
-	})
+	}
 
 	self.compareArr.push(obj)
 
@@ -48,9 +47,11 @@ Compare.prototype.init = function(){
 	}
 
 	var Mypromise = this.requests();
+	// this.requests(); // запрашиваем данные 
 	Mypromise
 		.then(this.initEvents())
 		.catch()
+	// this.initEvents();
 }
 
 
@@ -90,11 +91,13 @@ Compare.prototype.tarifs = function(){
 }
 
 Compare.prototype.filters = function(){
-	var self = this;
-	var filters = [...this.compareArr[1]['items']]
-	var checkbox = [...this.compareArr[2]['items']];
+	var self = this,
+	    filters = [...this.compareArr[1]['items']],
+	    checkbox = [...this.compareArr[2]['items']],
+	    index = "";
+
 	$(filters[0]).addClass("active")
-	var index = "";
+	
 
 	for(var i = 0; i < checkbox.length; i++){
 		$(checkbox[i]).off("change")
@@ -120,6 +123,7 @@ Compare.prototype.filters = function(){
 				index = $(this).attr("data-index")
 				self.active['filter'] = index * 1;
 				self.render()
+				console.log(self.active)
 			})
 		}
 		
@@ -149,9 +153,10 @@ Compare.prototype.clear = function(obj){
 }
 
 Compare.prototype.render = function(){
-	var self = this;
-	var obj = this.active;
-	var arr = Object.keys(obj['active']);
+	var self = this,
+	    obj = this.active,
+	    arr = Object.keys(obj['active']);
+
 	if(!arr.length){
 		this.clear(obj)
 		return
@@ -172,29 +177,40 @@ Compare.prototype.render = function(){
 }
 
 Compare.prototype.HTML = function(arr,senior,names,channelsOlder){
+	var html = "",
+		plusMin = "",
+		obj = {};
 
-	$.each(arr, function(key,val){ 
-				$.each(senior, function(i,el){
-					if( names[val*1].indexOf(el) != -1){
-							$(`.col_${val*1}`).append(`<div class="i">
-							<img src="img/DigitalTV/kanals/plus.jpg" alt="">
-							</div>`)
-					}else{
-						$(`.col_${val*1}`).append(`<div class="i"></div>`)
-						}	
-				})
+	for(var i = 0; i < arr.length; i++){
+		obj[arr[i]] = ""
+	}
+
+	for(var i = 0; i < arr.length; i++){
+		for(var j = 0; j < senior.length; j++){
+			if(names[arr[i]*1].indexOf(senior[j]) != -1){
+				obj[arr[i]] += `<div class="i">
+					<img src="img/DigitalTV/kanals/plus.jpg" alt="">
+				</div>`
+			}else{
+				obj[arr[i]] += `<div class="i"></div>`;
+			}
+		}
+	}
+
+	for(var i = 0; i < arr.length; i++){
+		$(`.col_${arr[i]*1}`).append(obj[arr[i]]);
+	}
+
+	$.each(this.isFunction(channelsOlder) ? channelsOlder() : channelsOlder, function(key,val){ // отображаем все каналы 
+			html+=`<div class="i">
+			     <img src="https://www.wifire.ru/${val['img']}" width="70" height="43" alt="">
+			     <span class="mb_hidden tb_hidden">${val['name']}</span>
+			   </div>`			
 			})
-
-		$.each(channelsOlder, function(key,val){ // отображаем все каналы 
-			$(".wrap_data_kanals").append(`<div class="i">
-					 <img src="https://www.wifire.ru/${val['img']}" width="70" height="43" alt="">
-					 <span class="mb_hidden tb_hidden">${val['name']}</span>
-					 </div>`)
-			
-			})
+		$(this.wrap_data_kanals).append(html);
+	}
 
 
-}
 
 Compare.prototype.filterRender = function(older,channelsOlder,names,filter,arr,senior){
 	var self = this;
@@ -236,23 +252,28 @@ Compare.prototype.filterRender = function(older,channelsOlder,names,filter,arr,s
 		senior.push(val['name'])
 	})
 }
+
+Compare.prototype.isFunction = function(functionToCheck) {
+      return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+}
+
 Compare.prototype.renderKanals = function(arr){
 
-	var channelsOlder = [];
-	var count = [];
-	var tarifs = [];
-	var self = this;
-	var filter = this.active.filter;
-	var names = {};
-	var senior = [];
-	var older;
+	var channelsOlder = [],
+	    count = [],
+	    tarifs = [],
+	    self = this,
+	    filter = this.active.filter,
+	    names = {},
+	    senior = [],
+	    older;
 
 
-	$(".wrap_data_kanals").children().remove() // Очищаем
-	$.each(arr, function(i,el){
-		$($(`.col_${el*1}`)).children().remove()
-	})
+	$(this.wrap_data_kanals).children().remove() // Очищаем
 
+	for(var i = 0; i < arr.length; i++){
+		$(`.col_${arr[i]*1}`).children().remove()
+	}
 
 	for(var i = 0; i < arr.length; i++){
 		count.push(this.data[arr[i]]['count']) // количество каналов
@@ -276,7 +297,8 @@ Compare.prototype.renderKanals = function(arr){
 	this.filterRender(older,channelsOlder,names,filter,arr,senior)
 	
 	if(this.active['HD']){
-		function HD(){
+
+		var hdFilter = function(){
 			return channelsOlder.filter(function(item){ 
 				const reqex = new RegExp("HD",'gi');
 				return item.name.match(reqex)
@@ -292,40 +314,17 @@ Compare.prototype.renderKanals = function(arr){
 			})
 		})
 		
-		newSenior = senior.filter(function(item){
+		newSenior = senior.filter(function(item){ // определяем новго старшего 
 			const reqex = new RegExp("HD",'gi');
 			return item.match(reqex)
 		})
-	
 
 		$.each(arr, function(i,el){
-			$($(`.col_${el*1}`)).children().remove()
+			$($(`.col_${el*1}`)).children().remove() 
 		})
 
-		$.each(HD(), function(key,val){ // отображаем 
-			$(".wrap_data_kanals").append(`<div class="i">
-										 <img src="https://www.wifire.ru/${val['img']}" width="70" height="43" alt="">
-										 <span class="mb_hidden tb_hidden">${val['name']}</span>
-									   </div>`)
-	
-		})
 
-		
-
-		$.each(arr, function(key,val){ 
-				$.each(newSenior, function(i,el){
-
-					if(names[val*1].indexOf(el) != -1){
-							$(`.col_${val*1}`).append(`<div class="i">
-													<img src="img/DigitalTV/kanals/plus.jpg" alt="">
-													</div>`)
-					}else{
-						$(`.col_${val*1}`).append(`<div class="i">
-												
-											</div>`)
-						}	
-				})
-			})
+		self.HTML(arr,newSenior,names,hdFilter)
 
 	}else{
 		self.HTML(arr,senior, names, channelsOlder)
