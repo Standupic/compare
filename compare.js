@@ -48,11 +48,9 @@ Compare.prototype.init = function(){
 	}
 
 	var Mypromise = this.requests();
-	// this.requests(); // запрашиваем данные 
 	Mypromise
 		.then(this.initEvents())
 		.catch()
-	// this.initEvents();
 }
 
 
@@ -80,14 +78,12 @@ Compare.prototype.tarifs = function(){
 				$(self.compareArr[5]['buttonCompare'][i]).removeClass("active")
 				$(self.compareArr[5]['buttonCompare'][i+i]).removeClass("active")
 				self.render()
-				console.log(self.active,"remove")
 			}else{
 				$(this).addClass("active")
 				self.active['active'][i] = i;
 				$(self.compareArr[5]['buttonCompare'][i]).addClass("active")
 				$(self.compareArr[5]['buttonCompare'][i+i]).addClass("active") 
 				self.render()
-				console.log(self.active,"add")
 			}
 		})
 	}
@@ -124,7 +120,6 @@ Compare.prototype.filters = function(){
 				index = $(this).attr("data-index")
 				self.active['filter'] = index * 1;
 				self.render()
-				console.log(self.active)
 			})
 		}
 		
@@ -182,21 +177,19 @@ Compare.prototype.HTML = function(arr,senior,names,channelsOlder){
 				$.each(senior, function(i,el){
 					if( names[val*1].indexOf(el) != -1){
 							$(`.col_${val*1}`).append(`<div class="i">
-													<img src="img/DigitalTV/kanals/plus.jpg" alt="">
-													</div>`)
+							<img src="img/DigitalTV/kanals/plus.jpg" alt="">
+							</div>`)
 					}else{
-						$(`.col_${val*1}`).append(`<div class="i">
-												
-											</div>`)
+						$(`.col_${val*1}`).append(`<div class="i"></div>`)
 						}	
 				})
 			})
 
 		$.each(channelsOlder, function(key,val){ // отображаем все каналы 
 			$(".wrap_data_kanals").append(`<div class="i">
-											 <img src="https://www.wifire.ru/${val['img']}" width="70" height="43" alt="">
-											 <span class="mb_hidden tb_hidden">${val['name']}</span>
-										   </div>`)
+					 <img src="https://www.wifire.ru/${val['img']}" width="70" height="43" alt="">
+					 <span class="mb_hidden tb_hidden">${val['name']}</span>
+					 </div>`)
 			
 			})
 
@@ -282,13 +275,7 @@ Compare.prototype.renderKanals = function(arr){
 	// Выборка по филтру
 	this.filterRender(older,channelsOlder,names,filter,arr,senior)
 	
-	// $.each(channelsOlder, function(key,val){ 
-	// 	senior.push(val['name'])
-	// })
-
-	console.log(self.active.active,"active")
 	if(this.active['HD']){
-		console.log("true")
 		function HD(){
 			return channelsOlder.filter(function(item){ 
 				const reqex = new RegExp("HD",'gi');
@@ -304,20 +291,12 @@ Compare.prototype.renderKanals = function(arr){
 				return item.match(reqex)
 			})
 		})
-
-		// console.log(names,"names")
 		
-		newSenior = senior.filter(function(item){ // определяем новго старшего 
+		newSenior = senior.filter(function(item){
 			const reqex = new RegExp("HD",'gi');
 			return item.match(reqex)
 		})
 	
-		// console.log(newSenior,"newSenior")
-
-		// $.each(HD(), function(key,val){
-		// 	senior.push(val['name'])
-		// })
-		// console.log(senior,"senior")
 
 		$.each(arr, function(i,el){
 			$($(`.col_${el*1}`)).children().remove()
